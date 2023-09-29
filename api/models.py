@@ -37,7 +37,7 @@ class Parking(models.Model):
     description = models.CharField(max_length=100, blank=True, null=True)
     latitude = models.CharField(max_length=100)
     longitude = models.CharField(max_length=100)
-    max_capacity = models.PositiveBigIntegerField()
+    max_capacity = models.PositiveBigIntegerField(default=0, editable=False)
     availability_count = models.PositiveIntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated_at = models.DateTimeField(auto_now=True)
