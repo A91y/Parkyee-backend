@@ -12,10 +12,12 @@ from . import views
 router.register(r'parking', views.ParkingViewSet)
 router.register(r'parkingavailability', views.ParkingAvailabilityViewSet)
 router.register(r'parkingslot', views.ParkingSlotViewSet)
-
+# router.register(r'parking/(?P<parking_id>\d+)/slots', views.ParkingSlotListView, basename='parking-slots')
+router.register(r'parking/(?P<parking_id>\d+)/slots/(?P<unique_id>\w+)', views.ParkingSlotDetailView, basename='parking-slot-detail')
 urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('parking/<int:parking_id>/slots/', views.ParkingSlotListView.as_view({'get': 'list'}), name='parking-slots'),
 ]
 
 # urlpatterns += [

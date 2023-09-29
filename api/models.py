@@ -4,7 +4,7 @@ from django.utils.deconstruct import deconstructible
 from uuid import uuid4
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-
+from django.db.models import UniqueConstraint
 
 @deconstructible
 class UploadToPathAndRename(object):
@@ -75,9 +75,24 @@ class ParkingAvailability(models.Model):
 
 class ParkingSlot(models.Model):
     parking = models.ForeignKey(Parking, on_delete=models.CASCADE)
-    unique_id = models.IntegerField(
-        auto_created=True, primary_key=True, serialize=True)
+    unique_id = models.IntegerField(auto_created=True)
     is_available = models.BooleanField(default=True)
-
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['parking', 'unique_id'], name='unique_parking_slot')
+        ]
     def __str__(self) -> str:
         return str(self.unique_id) + ' - ' + str(self.parking.name) + ' - ' + str(self.is_available)
+    
+
+    #### Never do such save thing in models.py
+    # def save(self, *args, **kwargs):
+    #     # Check if a ParkingAvailability instance exists for the parking
+    #     try:
+    #         availability = ParkingAvailability.objects.get(parking=self.parking)
+    #     except ParkingAvailability.DoesNotExist:
+    #         # If it doesn't exist, create a new one
+    #         availability = ParkingAvailability(parking=self.parking, available=0)
+    #         availability.save()
+
+    #         super().save(*args, **kwargs)

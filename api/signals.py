@@ -1,6 +1,6 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
-from .models import ParkingAvailability, ParkingSlot
+from .models import ParkingAvailability, ParkingSlot, Parking
 
 
 @receiver(post_save, sender=ParkingAvailability)
@@ -28,3 +28,9 @@ def update_parking_availability(sender, instance, **kwargs):
         parking=parking, is_available=True).count()
     availability.available = slots
     availability.save()
+
+@receiver(post_save, sender=Parking)
+def create_parking_availability(sender, instance, created, **kwargs):
+    if created:
+        if not ParkingAvailability.objects.filter(parking=instance).exists():
+            ParkingAvailability.objects.create(parking=instance, available=0)

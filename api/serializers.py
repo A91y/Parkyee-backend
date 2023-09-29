@@ -17,11 +17,6 @@ class ParkingAvailabilitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ParkingAvailability
         fields = '__all__'
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         exclude = ('password', )
-
 
 class ParkingSlotSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
