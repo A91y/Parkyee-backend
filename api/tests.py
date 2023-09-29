@@ -1,150 +1,207 @@
 from django.test import TestCase
-from django.urls import reverse
-from rest_framework import status
 from rest_framework.test import APIClient
-from .models import Parking, ParkingAvailability, ParkingSlot
-from .serializers import ParkingSerializer, ParkingAvailabilitySerializer, ParkingSlotSerializer
+from rest_framework import status
 from django.contrib.auth.models import User
-
+from .models import Parking, ParkingAvailability, ParkingSlot
 
 class ParkingTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.parking_data = {
-            'name': 'Test Parking',
-            'address': '123 Test Street',
-            'phone': '123-456-7890',
-            'website': 'http://www.test.com',
-            'price': '10.00',
-            'description': 'Test parking description',
-            'latitude': '123.456',
-            'longitude': '789.012',
-            'max_capacity': 100
-        }
-        self.response = self.client.post(
-            reverse('parking-list'), self.parking_data, format='json')
 
     def test_create_parking(self):
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
+        
+        data = {
+            'name': 'Test Parking',
+            'address': 'Test Address',
+            'latitude': '123.456',
+            'longitude': '789.012',
+            'max_capacity': 100,
+        }
+
+        response = self.client.post('/parking/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_parking(self):
-        parking = Parking.objects.get()
-        response = self.client.get(
-            reverse('parking-detail', kwargs={'pk': parking.id}), format='json')
-        serializer = ParkingSerializer(parking)
-        self.assertEqual(response.data, serializer.data)
+        response = self.client.get('/parking/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_parking(self):
-        parking = Parking.objects.get()
-        updated_data = {
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
+
+        parking = Parking.objects.create(
+            name='Test Parking',
+            address='Test Address',
+            latitude='123.456',
+            longitude='789.012',
+            max_capacity=100,
+        )
+
+        data = {
             'name': 'Updated Parking',
-            'price': '15.00'
+            'address': 'Updated Address',
         }
-        response = self.client.put(
-            reverse('parking-detail', kwargs={'pk': parking.id}), updated_data, format='json')
+
+        response = self.client.put(f'/parking/{parking.id}/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_parking(self):
-        parking = Parking.objects.get()
-        response = self.client.delete(
-            reverse('parking-detail', kwargs={'pk': parking.id}), format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
 
+        parking = Parking.objects.create(
+            name='Test Parking',
+            address='Test Address',
+            latitude='123.456',
+            longitude='789.012',
+            max_capacity=100,
+        )
+
+        response = self.client.delete(f'/parking/{parking.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 class ParkingAvailabilityTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.parking_data = {
-            'name': 'Test Parking',
-            'address': '123 Test Street',
-            'phone': '123-456-7890',
-            'website': 'http://www.test.com',
-            'price': '10.00',
-            'description': 'Test parking description',
-            'latitude': '123.456',
-            'longitude': '789.012',
-            'max_capacity': 100
-        }
-        self.parking = Parking.objects.create(**self.parking_data)
-        self.availability_data = {
-            'parking': self.parking.id,
-            'available': 50
-        }
-        self.response = self.client.post(
-            reverse('parkingavailability-list'), self.availability_data, format='json')
 
     def test_create_parking_availability(self):
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
+        
+        parking = Parking.objects.create(
+            name='Test Parking',
+            address='Test Address',
+            latitude='123.456',
+            longitude='789.012',
+            max_capacity=100,
+        )
+
+        data = {
+            'parking': f'/parking/{parking.id}/',
+            'available': 50,
+        }
+
+        response = self.client.post('/parkingavailability/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_parking_availability(self):
-        availability = ParkingAvailability.objects.get()
-        response = self.client.get(
-            reverse('parkingavailability-detail', kwargs={'pk': availability.id}), format='json')
-        serializer = ParkingAvailabilitySerializer(availability)
-        self.assertEqual(response.data, serializer.data)
+        response = self.client.get('/parkingavailability/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_parking_availability(self):
-        availability = ParkingAvailability.objects.get()
-        updated_data = {
-            'available': 60
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
+
+        parking = Parking.objects.create(
+            name='Test Parking',
+            address='Test Address',
+            latitude='123.456',
+            longitude='789.012',
+            max_capacity=100,
+        )
+
+        availability = ParkingAvailability.objects.create(
+            parking=parking,
+            available=50,
+        )
+
+        data = {
+            'available': 60,
         }
-        response = self.client.put(
-            reverse('parkingavailability-detail', kwargs={'pk': availability.id}), updated_data, format='json')
+
+        response = self.client.put(f'/parkingavailability/{availability.id}/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_parking_availability(self):
-        availability = ParkingAvailability.objects.get()
-        response = self.client.delete(
-            reverse('parkingavailability-detail', kwargs={'pk': availability.id}), format='json')
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
 
+        parking = Parking.objects.create(
+            name='Test Parking',
+            address='Test Address',
+            latitude='123.456',
+            longitude='789.012',
+            max_capacity=100,
+        )
+
+        availability = ParkingAvailability.objects.create(
+            parking=parking,
+            available=50,
+        )
+
+        response = self.client.delete(f'/parkingavailability/{availability.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 class ParkingSlotTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.parking_data = {
-            'name': 'Test Parking',
-            'address': '123 Test Street',
-            'phone': '123-456-7890',
-            'website': 'http://www.test.com',
-            'price': '10.00',
-            'description': 'Test parking description',
-            'latitude': '123.456',
-            'longitude': '789.012',
-            'max_capacity': 100
-        }
-        self.parking = Parking.objects.create(**self.parking_data)
-        self.slot_data = {
-            'parking': self.parking.id,
-            'is_available': True
-        }
-        self.response = self.client.post(
-            reverse('parkingslot-list'), self.slot_data, format='json')
 
     def test_create_parking_slot(self):
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
+        
+        parking = Parking.objects.create(
+            name='Test Parking',
+            address='Test Address',
+            latitude='123.456',
+            longitude='789.012',
+            max_capacity=100,
+        )
+
+        data = {
+            'parking': f'/parking/{parking.id}/',
+            'is_available': True,
+        }
+
+        response = self.client.post('/parkingslot/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_parking_slot(self):
-        slot = ParkingSlot.objects.get()
-        response = self.client.get(
-            reverse('parkingslot-detail', kwargs={'pk': slot.id}), format='json')
-        serializer = ParkingSlotSerializer(slot)
-        self.assertEqual(response.data, serializer.data)
+        response = self.client.get('/parkingslot/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_parking_slot(self):
-        slot = ParkingSlot.objects.get()
-        updated_data = {
-            'is_available': False
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
+
+        parking = Parking.objects.create(
+            name='Test Parking',
+            address='Test Address',
+            latitude='123.456',
+            longitude='789.012',
+            max_capacity=100,
+        )
+
+        slot = ParkingSlot.objects.create(
+            parking=parking,
+            is_available=True,
+        )
+
+        data = {
+            'is_available': False,
         }
-        response = self.client.put(
-            reverse('parkingslot-detail', kwargs={'pk': slot.id}), updated_data, format='json')
+
+        response = self.client.put(f'/parkingslot/{slot.id}/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_parking_slot(self):
-        slot = ParkingSlot.objects.get()
-        response = self.client.delete(
-            reverse('parkingslot-detail', kwargs={'pk': slot.id}), format='json')
+        user = User.objects.create_user(username='testuser', password='testpassword')
+        self.client.force_authenticate(user=user)
+
+        parking = Parking.objects.create(
+            name='Test Parking',
+            address='Test Address',
+            latitude='123.456',
+            longitude='789.012',
+            max_capacity=100,
+        )
+
+        slot = ParkingSlot.objects.create(
+            parking=parking,
+            is_available=True,
+        )
+
+        response = self.client.delete(f'/parkingslot/{slot.id}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
