@@ -40,7 +40,7 @@ class ParkingViewSet(viewsets.ModelViewSet):
             reverse('parkingavailability-detail', args=[instance.id])
         return Response(data)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class ParkingAvailabilityViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
     queryset = ParkingAvailability.objects.all()
@@ -81,7 +81,7 @@ class ParkingSlotViewSet(viewsets.ModelViewSet):
         # return super().create(request, *args, **kwargs)
         
 
-    
+@method_decorator(csrf_exempt, name='dispatch')
 class ParkingSlotListView(viewsets.ModelViewSet):
     # http_method_names = ["get"]
     serializer_class = ParkingSlotSerializer
@@ -101,7 +101,7 @@ class ParkingSlotListView(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class ParkingSlotDetailView(viewsets.ModelViewSet):
     queryset = ParkingSlot.objects.all()
     serializer_class = ParkingSlotSerializer
